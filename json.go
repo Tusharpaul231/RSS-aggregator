@@ -7,8 +7,7 @@ import (
 )
 
 func respondWithError(w http.ResponseWriter, code int, message string) {
-	// respondWithError sends a JSON response with an error message and the specified HTTP status code.
-	// It sets the Content-Type header to application/json and encodes the error message into JSON format.
+	
 	if code < 400 || code >= 600 {
 		log.Printf("Invalid status code: %d. Must be between 400 and 599.", code)
 	}
