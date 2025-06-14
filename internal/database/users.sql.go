@@ -18,6 +18,9 @@ INSERT INTO users (id, username, email, created_at, updated_at, api_key)
 VALUES ($1, $2, $3, NOW(), NOW(),
     encode(sha256(random()::text::bytea), 'hex'))
 RETURNING id, username, email, created_at, updated_at, api_key
+INSERT INTO users (id, username, email, created_at, updated_at)
+VALUES ($1, $2, $3, NOW(), NOW())
+RETURNING id, username, email, created_at, updated_at
 `
 
 type CreateUserParams struct {
