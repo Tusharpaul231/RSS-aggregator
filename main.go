@@ -12,7 +12,7 @@ import (
 	"github.com/joho/godotenv"
 
 	_ "github.com/lib/pq"
-	"D:\My-Projects\RSS-aggregator\internal\database\database.go"
+	"github.com/Tusharpaul231/RSS-aggregator/internal/database"
 )
 
 type apiConfig struct {
@@ -21,7 +21,10 @@ type apiConfig struct {
 
 func main() {
 
-	godotenv.Load()
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
 
 	// Load environment variables
 	portStr := os.Getenv("PORT")
@@ -35,10 +38,33 @@ func main() {
 		log.Fatal("Database URL not found")
 	}
 
-	conn, err := sql.Open("postgres", dbURL)
-	if err != nil {
-		log.Fatalf("Failed to connect to the database:", err)
+
+
+	// Initialize the database connection using individual environment variables
+	dbHost := os.Getenv("DB_HOST")
+	dbPort := os.Getenv("DB_PORT")
+	dbUser := os.Getenv("DB_USER")
+	dbPassword := os.Getenv("DB_PASSWORD")
+	dbName := os.Getenv("DB_NAME")
+
+	if dbHost == "" || dbPort == "" || dbUser == "" || dbPassword == "" || dbName == "" {
+		log.Fatal("One or more required DB environment variables are missing")
 	}
+
+	dsn := fmt.Sprintf(
+		"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+		dbHost, dbPort, dbUser, dbPassword, dbName,
+	)
+
+	conn, err := sql.Open("postgres", dsn)
+	if err != nil {
+		log.Fatal("Failed to connect to the database:", err)
+	}
+	if err = conn.Ping(); err != nil {
+		log.Fatal("Failed to ping the database:", err)
+	}
+	fmt.Println("✅ Connected to the database!")
+
 
 
 	apiCfg := &apiConfig{
@@ -60,6 +86,7 @@ func main() {
 	v1Router.Get("/healthz", handlerReadiness)
 	v1Router.Get("/err", handlerError)
 	v1Router.Post("/user", apiCfg.handlerUserCreate)
+	v1Router.Get("/user", apiCfg.handlerGetUser)
 
 	router.Mount("/v1", v1Router)
 
