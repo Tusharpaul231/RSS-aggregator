@@ -1,21 +1,24 @@
 package auth
 
 import (
+	"errors"
 	"net/http"
 	"strings"
 )
 
+var ErrNoAuthHeaderIncluded = errors.New("no authorization header included")
+
+// GetAPIKey -
 func GetAPIKey(headers http.Header) (string, error) {
-	// GetAPIKey retrieves the API key from the request headers.
-	// Exmaple implementation:
-	// Authentication : APIKey {your-api-key-here}
-	val := headers.Get("Authentication")
-	if val == "" {
-		return "", http.ErrNoCookie
+	authHeader := headers.Get("Authorization")
+	if authHeader == "" {
+		return "", ErrNoAuthHeaderIncluded
 	}
-	vals := strings.Split(val, " ")
-	if len(vals) != 2 || vals[0] != "APIKey" {
-		return "", http.ErrNoCookie
-	}
-	return vals[1], nil
+	splitAuth := strings.Split(authHeader, " ")
+	if len(splitAuth) < 2 || !strings.EqualFold(splitAuth[0], "ApiKey") {
+	return "", errors.New("malformed authorization header")
+}
+
+
+	return splitAuth[1], nil
 }

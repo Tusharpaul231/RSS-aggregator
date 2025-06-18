@@ -7,28 +7,27 @@ package database
 
 import (
 	"context"
-	
-	"time"
 
 	"github.com/google/uuid"
 )
 
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (id, username, email, created_at, updated_at, api_key)
-VALUES ($1, $2, $3, NOW(), NOW(),
-    encode(sha256(random()::text::bytea), 'hex'))
+VALUES (
+    $1,
+    $2,
+    $3,
+    NOW(),
+    NOW(),
+    encode(digest(random()::text, 'sha256'), 'hex')
+)
 RETURNING id, username, email, created_at, updated_at, api_key
-INSERT INTO users (id, username, email, created_at, updated_at)
-VALUES ($1, $2, $3, NOW(), NOW())
-RETURNING id, username, email, created_at, updated_at
 `
 
 type CreateUserParams struct {
 	ID       uuid.UUID
 	Username string
 	Email    string
-	CreatedAt time.Time
-	UpdatedAt time.Time
 }
 
 // This query creates a new user in the database.
@@ -46,13 +45,14 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 	return i, err
 }
 
-const getUserByID = `-- name: GetUserByID :one
-SELECT id, username, email, created_at, updated_at, api_key FROM users WHERE id = $1
+const getUserByAPIKey = `-- name: GetUserByAPIKey :one
+SELECT id, username, email, created_at, updated_at, api_key FROM users 
+WHERE api_key = $1
 `
 
 // This query retrieves a user by their ID.
-func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
-	row := q.db.QueryRowContext(ctx, getUserByID, id)
+func (q *Queries) GetUserByAPIKey(ctx context.Context, apiKey string) (User, error) {
+	row := q.db.QueryRowContext(ctx, getUserByAPIKey, apiKey)
 	var i User
 	err := row.Scan(
 		&i.ID,

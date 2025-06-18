@@ -83,11 +83,26 @@ func main() {
 	}))
 
 	v1Router := chi.NewRouter()
+	/*v1Router.Get("/healthz", handlerReadiness)
+	v1Router.Get("/err", handlerError)
+	v1Router.Post("/users", apiCfg.handlerUserCreate)
+	v1Router.Get("/users", apiCfg.middlewareAuth(apiCfg.handlerGetUser))
+	v1Router.Post("/feeds", apiCfg.middlewareAuth(apiCfg.handlerFeedCreate))
+	v1Router.Post("/feed_follows", apiCfg.middlewareAuth(apiCfg.handlerFeedFollow))
+	*/
+
+	//v1Router.Post("/users", apiCfg.handlerUsersCreate)
+	//v1Router.Get("/users", apiCfg.middlewareAuth(apiCfg.handlerUsersGet))
+
+	v1Router.Post("/feeds", apiCfg.middlewareAuth(apiCfg.handlerFeedCreate))
+	//v1Router.Get("/feeds", apiCfg.handlerGetFeeds)
+
+	v1Router.Get("/feed_follows", apiCfg.middlewareAuth(apiCfg.handlerFeedFollowsGet))
+	v1Router.Post("/feed_follows", apiCfg.middlewareAuth(apiCfg.handlerFeedFollowCreate))
+	v1Router.Delete("/feed_follows/{feedFollowID}", apiCfg.middlewareAuth(apiCfg.handlerFeedFollowDelete))
+
 	v1Router.Get("/healthz", handlerReadiness)
 	v1Router.Get("/err", handlerError)
-	v1Router.Post("/user", apiCfg.handlerUserCreate)
-	v1Router.Get("/user", apiCfg.handlerGetUser)
-
 	router.Mount("/v1", v1Router)
 
 	srv := &http.Server{

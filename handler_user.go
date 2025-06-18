@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"time"
+	//"time"
 
-	auth "github.com/Tusharpaul231/RSS-aggregator/internal/authentication"
+	//"github.com/Tusharpaul231/RSS-aggregator/internal/authentication"
 	"github.com/Tusharpaul231/RSS-aggregator/internal/database"
 	"github.com/google/uuid"
 )
@@ -30,8 +30,8 @@ func (apiCfg *apiConfig) handlerUserCreate(w http.ResponseWriter, r *http.Reques
 
 	user, err := apiCfg.DB.CreateUser(r.Context(), database.CreateUserParams{
 		ID:        uuid.New(),
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+		//CreatedAt: time.Now().UTC(),
+		//UpdatedAt: time.Now().UTC(),
 		Email:     params.Name + "@example.com", // Placeholder email, should be replaced with actual logic
 		Username:  params.Name, // Placeholder username, should be replaced with actual logic
 		
@@ -41,26 +41,13 @@ func (apiCfg *apiConfig) handlerUserCreate(w http.ResponseWriter, r *http.Reques
 		respondWithError(w, http.StatusInternalServerError, fmt.Sprint("Failed to create user: ", err))
 		return
 	}
-	respondWithJSON(w, http.StatusCreated, user)
+	respondWithJSON(w, http.StatusCreated, databaseUserToUser(user))
 }
 
-func (apiCfg *apiConfig) handlerGetUser(w http.ResponseWriter, r *http.Request) {
-	apiKey, err := auth.GetAPIKey(r.Header)
-	if err != nil{
-		respondWithError(w, 403, fmt.Sprintf("Auth Error: %v", err))
-		return
-	}
-
-	user, err := apiCfg.DB.GetUserByAPIKey(r.Context(), apiKey)
-	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, fmt.Sprintf("Failed to get user: %v", err))
-		return
-	}
-
+func (apiCfg *apiConfig) handlerGetUser(w http.ResponseWriter, r *http.Request, user database.User) {
+	// This handler retrieves a user by their API key.
+	
 	respondWithJSON(w, http.StatusOK, databaseUserToUser(user))
 
 }
 
-func databaseUserToUser(user any) interface{} {
-	panic("unimplemented")
-}
